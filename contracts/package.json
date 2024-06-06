@@ -1,0 +1,12 @@
+{
+  "name": "contracts",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "forge-std": "github:foundry-rs/forge-std#v1.8.1"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
