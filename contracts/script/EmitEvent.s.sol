@@ -19,7 +19,7 @@ contract EmitEvent is Script {
         IBensContract bensContract = IBensContract(
             0x5FbDB2315678afecb367f032d93F642f64180aa3
         );
-        bensContract.setNumber(69);
+        bensContract.setNumber(420);
 
         vm.stopBroadcast();
     }

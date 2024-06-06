@@ -29,7 +29,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 async fn listen_all_events(contract: &BensContract<Provider<Http>>) -> Result<()> {
     let events = contract.events().from_block(1);
-    let mut stream = events.stream().await?.take(1);
+    let mut stream = events.stream().await?;
 
     while let Some(Ok(evt)) = stream.next().await {
         println!("{:?}", evt);
