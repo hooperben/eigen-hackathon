@@ -6,7 +6,7 @@ import {Script, console} from "forge-std/src/Script.sol";
 import "../src/IBensContract.sol";
 
 // to run:
-// forge script script/EmitEvent.s.sol:EmitEvent --rpc-url localhost:8545 --broadcast --verify -vvvv
+// forge script script/EmitEvent.s.sol:EmitEvent --rpc-url localhost:8545 --broadcast -vvvv
 
 contract EmitEvent is Script {
     function setUp() public {}
