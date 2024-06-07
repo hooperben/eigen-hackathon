@@ -12,6 +12,8 @@ Initially intended to be a cross chain messaging protocol, this example reposito
 
 This is the Eigenlayer Active Validator Service. This AVS is written in rust, and more details about what it does and it's structure can be found `avs/README.md`.
 
+to get it running: `cargo build`
+
 #### `client/`
 
 This is the frontend deployed to SITE. This is a NextJS application bootstrapped with:
@@ -22,3 +24,5 @@ This is the frontend deployed to SITE. This is a NextJS application bootstrapped
 #### `contracts`
 
 This is a foundry project that contains all smart contracts, tests, deployment procedures and scripts required to get all application level (smart contract) parts of the Zarathustra protocol.
+
+to run tests: `make test` cause foundry submodules suck
