@@ -1,11 +1,13 @@
 use ethers::prelude::*;
 use eyre::Result;
+use serde::{Deserialize, Serialize}; // Import serde
 use std::sync::Arc;
 use tokio::main;
 
 abigen!(
     BensContract,
-    "../contracts/out/BensContract.sol/BensContract.json"
+    "../contracts/out/BensContract.sol/BensContract.json",
+    event_derives(serde::Deserialize, serde::Serialize)
 );
 
 #[tokio::main]
@@ -31,8 +33,18 @@ async fn listen_all_events(contract: &BensContract<Provider<Http>>) -> Result<()
     let events = contract.events().from_block(1);
     let mut stream = events.stream().await?;
 
-    while let Some(Ok(evt)) = stream.next().await {
-        println!("{:?}", evt);
+    while let Some(Ok(log)) = stream.next().await {
+        match log {
+            BensContractEvents::BensEventFilter(evt) => {
+                println!("Event1: {:?}", evt);
+            }
+            BensContractEvents::BensEvent2Filter(evt) => {
+                println!("Event2: {:?}", evt);
+            }
+            _ => {
+                println!("Other event: {:?}", log);
+            }
+        }
     }
 
     Ok(())
