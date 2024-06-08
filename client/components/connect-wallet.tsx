@@ -59,9 +59,10 @@ const ZarathustraConnectButton = () => (
             }
 
             return (
-              <div style={{ display: "flex", gap: 12 }}>
-                <button
+              <div style={{ display: "flex" }}>
+                <Button
                   onClick={openChainModal}
+                  variant="outline"
                   style={{ display: "flex", alignItems: "center" }}
                   type="button"
                 >
@@ -86,12 +87,12 @@ const ZarathustraConnectButton = () => (
                     </div>
                   )}
                   {chain.name}
-                </button>
+                </Button>
 
-                <button onClick={openAccountModal} type="button">
+                <Button onClick={openAccountModal} variant="outline">
                   {account.displayName}
                   {account.displayBalance ? ` (${account.displayBalance})` : ""}
-                </button>
+                </Button>
               </div>
             );
           })()}
@@ -101,7 +102,6 @@ const ZarathustraConnectButton = () => (
   </ConnectButton.Custom>
 );
 
-export const ConnectWallet = ({ isNavBar }: { isNavBar?: boolean }) => {
-  const { address } = useAccount();
-  return <div>{isNavBar && <ZarathustraConnectButton />}</div>;
+export const ConnectWallet = () => {
+  return <ZarathustraConnectButton />;
 };
