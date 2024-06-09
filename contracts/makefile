@@ -5,7 +5,7 @@ LIB_PATHS=node_modules
 
 .PHONY: test
 test:
-	forge test --contracts $(CONTRACTS_DIR) --lib-paths $(LIB_PATHS)
+	forge test --contracts $(CONTRACTS_DIR) --lib-paths $(LIB_PATHS) --via-ir
 
 .PHONY: deploy
 deploy:

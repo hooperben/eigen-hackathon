@@ -3,6 +3,7 @@
   "module": "index.ts",
   "type": "module",
   "devDependencies": {
+    "@openzeppelin/contracts": "^5.0.2",
     "@types/bun": "latest",
     "forge-std": "github:foundry-rs/forge-std#v1.8.1"
   },
