@@ -1,8 +1,6 @@
 use ethers::prelude::*;
 use eyre::Result;
-use serde::{Deserialize, Serialize}; // Import serde
 use std::sync::Arc;
-use tokio::main;
 
 abigen!(
     BensContract,
@@ -40,9 +38,6 @@ async fn listen_all_events(contract: &BensContract<Provider<Http>>) -> Result<()
             }
             BensContractEvents::BensEvent2Filter(evt) => {
                 println!("Event2: {:?}", evt);
-            }
-            _ => {
-                println!("Other event: {:?}", log);
             }
         }
     }
