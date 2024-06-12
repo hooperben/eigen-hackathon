@@ -6,6 +6,8 @@ This repository is intended to be the Zarathustra protocol, initially created as
 
 Initially intended to be a cross chain messaging protocol, this example repository is a more specialised implementation that allows for cross chain transfers of ERC20s using an Eigenlayer AVS implementation to accomplish the cross chain messaging.
 
+![Alt text](image-documentation/overview.png?raw=true "Title")
+
 ### Components
 
 #### `avs/`
