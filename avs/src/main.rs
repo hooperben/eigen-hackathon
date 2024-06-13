@@ -2,6 +2,7 @@ use ethers::prelude::*;
 use eyre::Result;
 use std::sync::Arc;
 
+// TODO refactor to vault
 abigen!(
     BensContract,
     "../contracts/out/BensContract.sol/BensContract.json",
@@ -34,6 +35,7 @@ async fn listen_all_events(contract: &BensContract<Provider<Http>>) -> Result<()
 
     while let Some(Ok(log)) = stream.next().await {
         match log {
+            // this should match all events emitted by the vault contract
             BensContractEvents::BensEventFilter(evt) => {
                 println!("Event1: {:?}", evt);
             }
