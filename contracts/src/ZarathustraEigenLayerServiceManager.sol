@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract ZarathustraBridgeServiceManager is IServiceManager, Ownable, Pausable, ReentrancyGuard {
+contract ZarathustraEigenLayerServiceManager is IServiceManager, Ownable, Pausable, ReentrancyGuard {
 
     IDelegationManager public delegationManager;
     IStrategyManager public strategyManager;
