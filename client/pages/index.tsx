@@ -25,13 +25,13 @@ import { useAccount } from "wagmi";
 const Home: NextPage = () => {
   const { address } = useAccount();
 
-  const [sourceNetwork, setSourceNetwork] = useState<string>("holesky");
+  const [sourceNetwork, setSourceNetwork] = useState<string>("Holesky");
   const [destNetwork, setDestNetwork] = useState<string>("OP Sepolia");
 
   const [sourceToken, setSourceToken] = useState<string>("ETH");
   const [destToken, setDestToken] = useState<string>("USDC");
 
-  const supportedNetworks = ["holesky", "OP Sepolia"];
+  const supportedNetworks = ["Holesky", "OP Sepolia"];
   const supportedTokens = ["ETH", "USDC"];
 
   return (
