@@ -29,17 +29,38 @@ This is the frontend deployed to SITE. This is a NextJS application bootstrapped
 
 This is a foundry project that contains all smart contracts, tests, deployment procedures and scripts required to get all application level (smart contract) parts of the Zarathustra protocol.
 
-The Vault contract enables seamless cross-chain token transfers using a robust validation mechanism powered by Eigenlayer’s Autonomous Verification Systems (AVS). It employs key libraries from OpenZeppelin for security and efficiency, including IERC20 for token standards, Ownable for access control, ReentrancyGuard to prevent reentrancy attacks, and ECDSA for digital signature operations. Users initiate a bridge request by interacting with the bridge function, transferring tokens to the contract and providing necessary transfer details. The contract emits a BridgeRequest event, logs the request data, and increments internal counters for tracking.
+Key contracts:
+- `vault.sol`: Manages user interactions and fund management.
+- `ZarathustraEigenLayerServiceManager.sol`: Handles operator management and interacts with EigenLayer.
 
-AVS signers, who are pre-approved, validate these bridge requests. They publish attestations via the publishAttestation function, which are then emitted as events and rewarded with ETH. To release funds on the destination chain, the releaseFunds function verifies signatures from both the canonical signer and AVS signers, ensuring the integrity and validity of the transfer. Once verified, the contract transfers the tokens to the specified destination address and pays out a gas cost reward to the caller. This process eliminates intermediaries, reduces costs, and streamlines cross-chain transactions, leveraging smart contracts and AVS for automated, secure, and efficient fund transfers.
+The Zarathustra protocol is primarily driven by two key smart contracts: Vault.sol and ZarathustraEigenLayerServiceManager.sol. Vault.sol serves as the central hub for user interactions and fund management in the cross-chain transfer process. When a user initiates a bridge request, they interact with the Vault contract's bridge function, specifying the token address, amount to transfer, expected output amount, destination vault, and recipient address. The contract securely holds the user's tokens and emits a BridgeRequest event, which is crucial for the subsequent validation process. Vault.sol also manages the release of funds on the destination chain through its releaseFunds function, which requires valid signatures and attestations before executing the transfer.
+
+ZarathustraEigenLayerServiceManager.sol acts as the liaison between the Zarathustra protocol and the EigenLayer ecosystem. This contract is responsible for managing the Actively Validated Service (AVS) operators who play a vital role in validating cross-chain transfers. It handles operator registration, tracks their active status, and ensures they meet the minimum staking requirements. The ServiceManager interacts with EigenLayer's DelegationManager and StrategyManager contracts to verify operator eligibility and manage stakes. When a BridgeRequest event is emitted by the Vault contract, the registered operators, whose status is managed by the ServiceManager, are responsible for validating the request and submitting attestations back to the Vault contract. This interconnected system of contracts ensures a secure, decentralized, and efficient cross-chain transfer mechanism, leveraging EigenLayer's infrastructure for enhanced security and scalability.
 
 To run tests: `make test` cause foundry submodules suck.
 
 ### How Zarathustra Works
 
-Starting with the frontend, the user types in their desired amount, currency, and chain. This frontend then interacts directly with the (`vault.sol`) smart contract.
+1. User Interaction:
+   - User initiates a transfer through the frontend, specifying amount, currency, and destination chain.
+   - Frontend interacts with the `vault.sol` contract.
 
-Using the (`vault.sol`) smart contract involves several steps, ensuring secure and efficient cross-chain token transfers. A user starts by initiating a transfer on the source chain through the bridge function. This requires specifying the token address, amount to transfer (`amountIn`), expected amount on the destination chain (`amountOut`), the address of the destination vault, and the recipient’s address on the destination chain. The user must also pay a bridging fee to cover the transaction cost. Upon calling the `bridge` function, the contract transfers the specified tokens from the user to itself using the `bridgeERC20` internal function. This function calls the ERC-20 token’s `transferFrom` method to move the tokens, ensuring the user has approved the transfer beforehand. Once the tokens are successfully transferred, the contract emits a `BridgeRequest` event, logging all necessary details and storing the request data in the `bridgeRequests` mapping. Each request is assigned a unique ID, tracked by `currentBridgeRequestId`.
+2. Bridge Request:
+   - `vault.sol` receives the bridge request via the `bridge` function.
+   - Contract transfers tokens from user to itself.
+   - Emits a `BridgeRequest` event and stores request data.
 
-After the bridge request is made, it waits for validation by an Autonomous Verification System (AVS) signer. AVS signers, who are pre-approved and listed in the `whitelistedSigners` mapping, monitor for new `BridgeRequest` events. Upon detecting a new request, an AVS signer verifies its details and, if valid, publishes an attestation using the `publishAttestation` function. This function emits an `AVSAttestation` event and rewards the AVS signer with a predefined amount of ETH, ensuring the signer’s incentive. The attestation is crucial for the next step, which involves releasing the bridged funds on the destination chain. On the destination chain, another user or automated process calls the `releaseFunds` function with the original request data, the canonical signer's signature, and the AVS signer's attestation signature. The contract first verifies the signatures to ensure authenticity and integrity. Once validated, the contract transfers the specified `amountOut` of tokens to the destination address using the ERC-20 `transfer` function. Additionally, the caller of the `releaseFunds` function is compensated for gas costs based on the current gas price, paid out from the contract’s balance. This completes the cross-chain transfer, providing a seamless and secure mechanism for moving tokens between different blockchains.
+3. AVS Validation:
+   - `ZarathustraEigenLayerServiceManager.sol` manages AVS operators.
+   - Operators monitor for `BridgeRequest` events.
+   - Valid requests are attested to by operators using `publishAttestation`.
+
+4. Fund Release:
+   - On the destination chain, `releaseFunds` function is called.
+   - Contract verifies signatures and attestations.
+   - If valid, transfers tokens to the destination address.
+
+5. EigenLayer Integration:
+   - `ZarathustraEigenLayerServiceManager.sol` interacts with EigenLayer contracts for operator staking and management.
+
 
