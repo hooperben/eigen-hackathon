@@ -2,6 +2,8 @@
 
 This repository is intended to be the Zarathustra protocol, initially created as a project for ETH Prague 2024, but now being expanded upon for the Eigenlayer hackathon.
 
+![Alt text](image-documentation/zarathustrabanner.png?raw=true "Title")
+
 ### The Zarahustra Protocol
 
 Initially intended to be a cross chain messaging protocol, this example repository is a more specialised implementation that allows for cross chain transfers of ERC20s using an Eigenlayer AVS implementation to accomplish the cross chain messaging.
