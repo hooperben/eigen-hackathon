@@ -47,6 +47,8 @@ Operators interact with the contract through the `publishAttestation` function. 
 
 To maintain the security and integrity of the system, `VaultAVS.sol` includes a `challengeAttestation` function. This allows any party to challenge a potentially fraudulent attestation by providing evidence of the fraudulent signature and bridge request data. If fraud is detected, the contract can slash the offending operator, providing a strong disincentive for malicious behavior.
 
+![Alt text](image-documentation/challenge.png?raw=true "Title")
+
 The contract also includes several helper functions for managing operator weights and minimum requirements, as well as owner-only functions for adjusting fees and rewards. These functions allow for fine-tuning of the protocol's economic parameters as needed. 
 
 The contract's integration with Eigenlayer's stake registry and rewards coordinator allows it to leverage the security and economic incentives of the broader Eigenlayer ecosystem.
