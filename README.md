@@ -8,7 +8,7 @@ This repository is intended to be the Zarathustra protocol, initially created as
 
 ### The Zarahustra Protocol
 
-Initially intended to be a cross chain messaging protocol, this example repository is a more specialised implementation that allows for cross chain transfers of ERC20s using an Eigenlayer AVS implementation to accomplish the cross chain messaging.
+Initially intended to be a cross chain messaging protocol, this example repository is a more specialised implementation that allows for cross chain transfers of ERC20s using an Eigenlayer AVS implementation. The Zarathustra protocol leverages Eigenlayer's infrastructure to provide secure and efficient cross-chain token transfers. At its core, the protocol utilizes a smart contract called VaultAVS, which combines the functionality of a vault and an AVS manager.
 
 ![Alt text](image-documentation/overview.png?raw=true "Title")
 
@@ -31,38 +31,38 @@ This is the frontend deployed to SITE. This is a NextJS application bootstrapped
 
 This is a foundry project that contains all smart contracts, tests, deployment procedures and scripts required to get all application level (smart contract) parts of the Zarathustra protocol.
 
-Key contracts:
-- `vault.sol`: Manages user interactions and fund management.
-- `ZarathustraEigenLayerServiceManager.sol`: Handles operator management and interacts with EigenLayer.
+`VaultAVS.sol`: The Heart of Zarathustra
 
-The Zarathustra protocol is primarily driven by two key smart contracts: Vault.sol and ZarathustraEigenLayerServiceManager.sol. Vault.sol serves as the central hub for user interactions and fund management in the cross-chain transfer process. When a user initiates a bridge request, they interact with the Vault contract's bridge function, specifying the token address, amount to transfer, expected output amount, destination vault, and recipient address. The contract securely holds the user's tokens and emits a BridgeRequest event, which is crucial for the subsequent validation process. Vault.sol also manages the release of funds on the destination chain through its releaseFunds function, which requires valid signatures and attestations before executing the transfer.
+`VaultAVS.sol` is a Solidity smart contract that integrates vault functionality with AVS management. It inherits from ECDSAServiceManagerBase, allowing it to interact seamlessly with Eigenlayer's ecosystem. The contract uses several mappings to efficiently track bridge requests, operator responses, and weights.
 
-ZarathustraEigenLayerServiceManager.sol acts as the liaison between the Zarathustra protocol and the EigenLayer ecosystem. This contract is responsible for managing the Actively Validated Service (AVS) operators who play a vital role in validating cross-chain transfers. It handles operator registration, tracks their active status, and ensures they meet the minimum staking requirements. The ServiceManager interacts with EigenLayer's DelegationManager and StrategyManager contracts to verify operator eligibility and manage stakes. When a BridgeRequest event is emitted by the Vault contract, the registered operators, whose status is managed by the ServiceManager, are responsible for validating the request and submitting attestations back to the Vault contract. This interconnected system of contracts ensures a secure, decentralized, and efficient cross-chain transfer mechanism, leveraging EigenLayer's infrastructure for enhanced security and scalability.
+`nextUserTransferIndexes`: This mapping keeps track of unique transfer indices for each user, ensuring proper sequencing of transfers.
+
+`operatorResponses`: This prevents duplicate responses from operators, maintaining the integrity of the validation process.
+
+`bridgeRequestWeights`: This accumulates the total weight of operators attesting to each request, crucial for determining when a transfer can be executed.
+
+The contract's `bridge` function serves as the entry point for users initiating cross-chain transfers. It accepts token transfers and emits a `BridgeRequest` event, storing the request details in the `bridgeRequests` mapping. This function ensures that the correct bridge fee is paid and that the token transfer to the contract is successful.
+
+Operators interact with the contract through the `publishAttestation` function. This function performs several crucial checks. It verifies that the operator has the minimum required weight, ensures the operator hasn't already responded to the same bridge request, and validates the attestation signature against the bridge request data. Upon passing these checks, the function updates the total weight for the bridge request and rewards the operator for their participation.
+
+To maintain the security and integrity of the system, `VaultAVS.sol` includes a `challengeAttestation` function. This allows any party to challenge a potentially fraudulent attestation by providing evidence of the fraudulent signature and bridge request data. If fraud is detected, the contract can slash the offending operator, providing a strong disincentive for malicious behavior.
+
+The contract also includes several helper functions for managing operator weights and minimum requirements, as well as owner-only functions for adjusting fees and rewards. These functions allow for fine-tuning of the protocol's economic parameters as needed. 
+
+The contract's integration with Eigenlayer's stake registry and rewards coordinator allows it to leverage the security and economic incentives of the broader Eigenlayer ecosystem.
 
 To run tests: `make test` cause foundry submodules suck.
 
 ### How Zarathustra Works
 
-1. User Interaction:
-   - User initiates a transfer through the frontend, specifying amount, currency, and destination chain.
-   - Frontend interacts with the `vault.sol` contract.
+1. User Interaction: Users initiate transfers through the frontend, specifying the amount, currency, and destination chain. The frontend interacts with the VaultAVS contract to process this request.
 
-2. Bridge Request:
-   - `vault.sol` receives the bridge request via the `bridge` function.
-   - Contract transfers tokens from user to itself.
-   - Emits a `BridgeRequest` event and stores request data.
+2. Bridge Request: The VaultAVS contract receives the bridge request via the bridge function. It transfers tokens from the user to itself and emits a BridgeRequest event, storing the request data for future reference.
 
-3. AVS Validation:
-   - `ZarathustraEigenLayerServiceManager.sol` manages AVS operators.
-   - Operators monitor for `BridgeRequest` events.
-   - Valid requests are attested to by operators using `publishAttestation`.
+3. AVS Validation: The VaultAVS contract, which incorporates AVS management functionality, oversees the validation process. Registered operators monitor for BridgeRequest events and attest to valid requests using the publishAttestation function.
 
-4. Fund Release:
-   - On the destination chain, `releaseFunds` function is called.
-   - Contract verifies signatures and attestations.
-   - If valid, transfers tokens to the destination address.
+4. Fund Release: On the destination chain, the releaseFunds function (not shown in the provided code snippet) can be called. This function would verify signatures and attestations before transferring tokens to the destination address.
 
-5. EigenLayer Integration:
-   - `ZarathustraEigenLayerServiceManager.sol` interacts with EigenLayer contracts for operator staking and management.
+5. EigenLayer Integration: The VaultAVS contract interacts directly with EigenLayer contracts for operator staking and management, leveraging EigenLayer's security model.
 
 
