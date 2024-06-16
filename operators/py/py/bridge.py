@@ -4,7 +4,7 @@ from eth_account.signers.local import LocalAccount
 from web3 import Web3
 
 from py.config.config import Chain
-
+from py.event_types import BridgeRequest
 
 type TransactionHash = str
 
@@ -37,9 +37,6 @@ class Bridge:
     def owner(self):
         return self.bridge_contract.functions.owner().call()
 
-    def get_digest(self, cd):
-        return self.bridge_contract.functions.getDigest(cd).call()
-
     def initialize(self, caller: LocalAccount) -> TransactionHash:
         tx = self.bridge_contract.functions.initialize().build_transaction(
             self._default_tx_body(caller.address)
@@ -47,8 +44,35 @@ class Bridge:
         return self._sign_and_send(tx, caller)
 
     def set_bridge_fee(self, caller: LocalAccount):
-        tx = self.bridge_contract.functions.setBridgeFee(0).build_transaction(self._default_tx_body(caller.account))
+        tx = self.bridge_contract.functions.setBridgeFee(0).build_transaction(
+            self._default_tx_body(caller.address)
+        )
         return self._sign_and_send(tx, caller)
+
+    def set_operator_weight(self, operator: str, weight: int, caller: LocalAccount):
+        tx = self.bridge_contract.functions.setOperatorWeight(operator, weight).build_transaction(
+            self._default_tx_body(caller.address)
+        )
+        return self._sign_and_send(tx, caller)
+
+    def get_operator_weight(self, operator: str):
+        return self.bridge_contract.functions.getOperatorWeight(operator).call()
+
+    def get_digest(self, bridge_request: BridgeRequest):
+        return self.bridge_contract.functions.getDigest(bridge_request.as_struct()).call()
+
+    def get_bridge_request(self, bridge_request_id: int):
+        return self.bridge_contract.functions.bridgeRequests(bridge_request_id).call()
+
+    def sign_bridge_request(self, bridge_request: BridgeRequest) -> bytes:
+        digest = self.get_digest(bridge_request)
+        return signer.signHash(digest).signature
+
+    def attest_bridge_request(self, signature: bytes, bridge_request_id: int, caller: LocalAccount) -> str:
+        tx = self.bridge_contract.functions.attestBridgeRequest(signature, bridge_request_id).build_transaction(
+            self._default_tx_body(caller.address)
+        )
+        return self._sign_and_send(tx, Account.from_key(self.owner))
 
 
 if __name__ == "__main__":
@@ -67,5 +91,6 @@ if __name__ == "__main__":
     from eth_account import Account
     signer = Account.from_key(os.getenv("DEPLOYER_KEY"))
 
-    print(b.owner)
-    
+    # print(b.set_operator_weight(signer.address, 10**18, signer))
+    # print(b.get_operator_weight(signer.address))
+    print("bridge request on ", b.chain.name, b.get_bridge_request(0))

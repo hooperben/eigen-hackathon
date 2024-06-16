@@ -6,8 +6,10 @@ from eth_typing import ChecksumAddress
 import eth_abi
 
 import websockets
+from eth_utils import to_checksum_address
 
 from py.config.config import Chain
+from py.event_types import Attestation, BridgeRequest
 
 
 def get_log_sub_msg(address: str, topics: list | None = None) -> str:
@@ -45,7 +47,7 @@ class BridgeMonitor:
             while True:
                 yield await ws.recv()
 
-    async def monitor(self) -> NoReturn:
+    async def monitor(self) -> AsyncGenerator[BridgeRequest | Attestation, None]:
         while True:
             try:
                 async for message in self._monitor():
@@ -60,10 +62,9 @@ class CompositeBridgeMonitor:
         self.monitors = [BridgeMonitor(c) for c in chain]
 
     async def monitor(self) -> AsyncGenerator[str, None]:
-        merged_stream = aiostream.stream.merge(*(monitor.monitor() for monitor in self.monitors))
+        merged_stream = aiostream.stream.merge(*(m.monitor() for m in self.monitors))
         async with merged_stream.stream() as stream:
             async for msg in stream:
-
                 yield msg
 
     async def consume(self):
