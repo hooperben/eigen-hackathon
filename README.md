@@ -31,7 +31,7 @@ This is the frontend deployed to SITE. This is a NextJS application bootstrapped
 
 This is a foundry project that contains all smart contracts, tests, deployment procedures and scripts required to get all application level (smart contract) parts of the Zarathustra protocol.
 
-#### `VaultAVS.sol`: The Heart of Zarathustra
+#### The Vault: The Heart of Zarathustra
 
 `VaultAVS.sol` is a Solidity smart contract that integrates vault functionality with AVS management. It inherits from `ECDSAServiceManagerBase`, allowing it to interact seamlessly with Eigenlayer's ecosystem. The contract uses several mappings to efficiently track bridge requests, operator responses, and weights.
 
