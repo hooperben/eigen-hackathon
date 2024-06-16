@@ -1,0 +1,18 @@
+{
+  "name": "ts",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+    "scripts": {
+    "generate-wrappers:ecdsautils": "abi-gen --abis '../abis/ECDSAUtils.sol/*.json' --output '../py/wrappers/ecdsautils' --language Python",
+    "generate-wrappers:eigenlayerbridge": "abi-gen --abis '../abis/EigenLayerBridge.sol/*.json' --output '../py/wrappers/eigenlayerbridge' --language Python",
+    "generate-wrappers:events": "abi-gen --abis '../abis/Events.sol/*.json' --output '../py/wrappers/events' --language Python",
+    "generate-wrappers:permissionedbridge": "abi-gen --abis '../abis/PermissionedBridge.sol/*.json' --output '../py/wrappers/permissionedbridge' --language Python",
+    "generate-wrappers:structs": "abi-gen --abis '../abis/Structs.sol/*.json' --output '../py/wrappers/structs' --language Python",
+    "generate-wrappers:vault": "abi-gen --abis '../abis/Vault.sol/*.json' --output '../py/wrappers/vault' --language Python",
+    "generate-wrappers": "yarn run generate-wrappers:ecdsautils && yarn run generate-wrappers:eigenlayerbridge && yarn run generate-wrappers:events && yarn run generate-wrappers:permissionedbridge && yarn run generate-wrappers:structs && yarn run generate-wrappers:vault"
+  },
+  "dependencies": {
+    "@0x/abi-gen": "^5.8.5"
+  }
+}
