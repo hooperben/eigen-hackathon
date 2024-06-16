@@ -1,0 +1,3 @@
+[submodule "contracts/v3"]
+	path = contracts/v3
+	url = https://github.com/idatsy/eigen-bridge

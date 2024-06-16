@@ -1,4 +1,6 @@
-## Zarathustra (v2)
+# Zarathustra (v2)
+
+> run `make update` to update git submodule dependencies
 
 This repository is intended to be the Zarathustra protocol, initially created as a project for ETH Prague 2024, but now being expanded upon for the Eigenlayer hackathon.
 
