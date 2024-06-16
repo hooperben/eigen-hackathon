@@ -20,7 +20,13 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "../components/ui/dropdown-menu";
-import { useAccount, useBalance } from "wagmi";
+import {
+  useAccount,
+  useBalance,
+  useReadContract,
+  useWaitForTransactionReceipt,
+  useWriteContract,
+} from "wagmi";
 import Fees from "../components/ui/fees";
 import {
   SupportedNetwork,
@@ -30,7 +36,8 @@ import {
 import Error from "../components/ui/error";
 import { Skeleton } from "../components/ui/skeleton";
 import Swaperoo from "../components/ui/swaperoo";
-import { parseUnits } from "viem";
+import { erc20Abi, formatUnits, parseUnits } from "viem";
+import Spinner from "../components/ui/spinner";
 
 const Home: NextPage = () => {
   const { address } = useAccount();
@@ -56,6 +63,7 @@ const Home: NextPage = () => {
     setAmount(value === "" ? undefined : parseFloat(value));
   };
 
+  // get source token balance
   const {
     data: sourceTokenBalance,
     refetch,
@@ -66,9 +74,21 @@ const Home: NextPage = () => {
     chainId: supportedTokens[sourceToken].chainId,
   });
 
-  useEffect(() => {
-    refetch();
-  }, [refetch, sourceToken]);
+  // get source token allowance
+  const {
+    data: sourceTokenAllowance,
+    refetch: refetchAllowance,
+    isLoading: sourceTokenAllowanceLoading,
+  } = useReadContract({
+    address: supportedTokens[sourceToken].address as `0x${string}`,
+    chainId: supportedTokens[sourceToken].chainId,
+    abi: erc20Abi,
+    functionName: "allowance",
+    args: [
+      address!,
+      supportedTokens[sourceToken].network.vaultAddress as `0x${string}`,
+    ],
+  });
 
   useEffect(() => {
     switch (true) {
@@ -79,6 +99,7 @@ const Home: NextPage = () => {
         });
         break;
       case amount &&
+        sourceTokenBalance &&
         parseUnits(amount!.toString(), supportedTokens[sourceToken].decimals) >
           sourceTokenBalance!.value:
         setBridgeLogicError({
@@ -103,13 +124,43 @@ const Home: NextPage = () => {
     setSourceNetwork(currentDest.destNetwork);
   };
 
+  const { data: hash, isPending, writeContractAsync } = useWriteContract();
+
+  const {
+    isLoading: loadingApprovalConfirmation,
+    isSuccess: isApprovalSuccess,
+  } = useWaitForTransactionReceipt({
+    confirmations: 1,
+    hash: hash,
+    chainId: supportedTokens[sourceToken].chainId,
+  });
+
+  const handleApproval = async () => {
+    await writeContractAsync({
+      address: supportedTokens[sourceToken].address as `0x${string}`,
+      chainId: supportedTokens[sourceToken].chainId,
+      abi: erc20Abi,
+      functionName: "approve",
+      args: [
+        supportedTokens[sourceToken].network.vaultAddress as `0x${string}`,
+        BigInt(
+          parseUnits(amount!.toString(), supportedTokens[sourceToken].decimals)
+        ),
+      ],
+    });
+  };
+
+  useEffect(() => {
+    refetch();
+    refetchAllowance();
+  }, [refetch, sourceToken, refetchAllowance, address, isApprovalSuccess]);
+
   return (
     <div>
       <Head>
         <title>Zarathustra</title>
         <link href="/favicon.ico" rel="icon" />
       </Head>
-
       <main className="w-[100%] bg-white">
         <div className="flex w-full justify-between p-4 align-middle">
           <h1>Zarathustra</h1>
@@ -250,7 +301,7 @@ const Home: NextPage = () => {
                 {/* AMOUNT */}
                 <div className="p-4">
                   <div className="flex align-left text-xs pb-1">
-                    <p>Amount to Send</p>
+                    <p>Amount to Bridge</p>
                   </div>
                   <Input
                     value={amount !== undefined ? amount : ""}
@@ -261,6 +312,12 @@ const Home: NextPage = () => {
                   />
                 </div>
 
+                {sourceTokenAllowanceLoading && address && (
+                  <div className="flex flex-row pl-4 align-right text-xs pt-1">
+                    <Skeleton className="w-[100px] h-[8px] rounded-full" />
+                  </div>
+                )}
+
                 {bridgeLogicError && (
                   <Error
                     title={bridgeLogicError.title}
@@ -268,8 +325,81 @@ const Home: NextPage = () => {
                   />
                 )}
 
-                {/* FEES + TRANSFER BREAKDOWN */}
-                {/* <Fees /> */}
+                {hash ||
+                  (isApprovalSuccess && (
+                    <Button
+                      onClick={() =>
+                        window.open(
+                          `${supportedTokens[sourceToken].blockExplorer}/tx/${hash}`,
+                          "_blank",
+                          "noopener,noreferrer"
+                        )
+                      }
+                    >
+                      View Approval Tx
+                    </Button>
+                  ))}
+
+                {/* ALLOWANCE BUTTON + HANDLING */}
+                {amount &&
+                  sourceTokenAllowance &&
+                  parseUnits(
+                    amount!.toString(),
+                    supportedTokens[sourceToken].decimals
+                  ) > sourceTokenAllowance && (
+                    <>
+                      <p className="flex flex-row pl-4 align-right text-xs py-1">
+                        {sourceTokenAllowance > 0
+                          ? `You'll need to increase the amount the vault address can move of your ${supportedTokens[sourceToken].name}`
+                          : `You'll need to approve the vault address to move
+                     your ${supportedTokens[sourceToken].name}`}
+                      </p>
+
+                      {sourceTokenAllowance > 0 && (
+                        <>
+                          <div className="flex flex-row pl-4 justify-center w-full text-xs py-1">
+                            <p className="font-bold">current approval:</p>
+                            <p className="ml-2">
+                              {parseFloat(
+                                formatUnits(
+                                  sourceTokenAllowance,
+                                  supportedTokens[sourceToken].decimals
+                                )
+                              ).toLocaleString("en-US", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}
+                            </p>
+                          </div>
+                        </>
+                      )}
+
+                      <Button
+                        variant="outline"
+                        onClick={handleApproval}
+                        className="min-w-[200px]"
+                      >
+                        {isPending || loadingApprovalConfirmation ? (
+                          <Spinner />
+                        ) : (
+                          "Grant Approval"
+                        )}
+                      </Button>
+                    </>
+                  )}
+
+                {/* SUBMIT TX */}
+
+                {amount &&
+                  sourceTokenAllowance &&
+                  parseUnits(
+                    amount!.toString(),
+                    supportedTokens[sourceToken].decimals
+                  ) < sourceTokenAllowance && (
+                    <Button variant="outline" className="min-w-[200px]">
+                      Bridge Tokens
+                    </Button>
+                  )}
 
                 {!address && <ConnectWallet />}
               </CardContent>
@@ -277,7 +407,6 @@ const Home: NextPage = () => {
           </div>
         </div>
       </main>
-
       <footer></footer>
     </div>
   );
