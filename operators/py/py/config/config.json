@@ -5,14 +5,14 @@
       "id": 17000,
       "wss_endpoint": "wss://wispy-black-smoke.ethereum-holesky.quiknode.pro/245610719b4b728eb34da31d32680b5b2f22fc7e/",
       "http_endpoint": "https://wispy-black-smoke.ethereum-holesky.quiknode.pro/245610719b4b728eb34da31d32680b5b2f22fc7e/",
-      "vault_address": "0xE79285994020f0C8177E795430BF69A7C193FaD3"
+      "vault_address": "0x1EC139ff1b5804f72a9c6955e69d5ecB83A5D5a5"
     },
     {
       "name": "OP Sepolia",
       "id": 11155420,
       "wss_endpoint": "wss://holy-dawn-dust.optimism-sepolia.quiknode.pro/d9ebf966dd2754a6e5da1f12fc455dc137628c13/",
       "http_endpoint": "https://holy-dawn-dust.optimism-sepolia.quiknode.pro/d9ebf966dd2754a6e5da1f12fc455dc137628c13/",
-      "vault_address": "0x38a406C320Ab23f18D3a10E44f37084d29f4dD96"
+      "vault_address": "0x1EC139ff1b5804f72a9c6955e69d5ecB83A5D5a5"
     }
   ]
 }
