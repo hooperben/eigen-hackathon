@@ -57,12 +57,10 @@ To run tests: `make test` cause foundry submodules suck.
 
 1. User Interaction: Users initiate transfers through the frontend, specifying the amount, currency, and destination chain. The frontend interacts with the `VaultAVS.sol` contract to process this request.
 
-2. Bridge Request: The `VaultAVS.sol` contract receives the bridge request via the `bridge` function. It transfers tokens from the user to itself and emits a `BridgeRequest event`, storing the request data for future reference.
+2. Bridge Request: The `VaultAVS.sol` contract receives the bridge request via the `bridge` function. It transfers tokens from the user to itself and emits a `BridgeRequest` event, storing the request data for future reference.
 
-3. AVS Validation: The `VaultAVS.sol` contract, which incorporates AVS management functionality, oversees the validation process. Registered operators monitor for `BridgeRequest` events and attest to valid requests using the `publishAttestation` function.
+3. AVS Validation: The `VaultAVS.sol` contract, which incorporates AVS management functionality, oversees the validation process. Registered operators monitor for `BridgeRequest` events and attest to valid requests using the `publishAttestation` function As attestations are emitted as public events, they can be challenged by anyone via the `challengeAttestation` function.
 
-4. Fund Release: On the destination chain, the `releaseFunds` function can be called. This function verifies signatures and attestations before transferring tokens to the destination address.
+4. Fund Release: Once sufficient stake has attested that the bridge request is valid, anyone can aggregate the attestations and release the funds on the destination chain by calling the `releaseFunds` function. This function verifies signatures and attestations before transferring tokens to the destination address.
 
-5. EigenLayer Integration: The `VaultAVS.sol` contract interacts directly with EigenLayer contracts for operator staking and management, leveraging EigenLayer's security model.
-
-
+5. The Vault on the destination chain validates the bridge parameters and attestations, ensuring enough economic value has been staked to cover the released funds, before completing the process by transferring the user.
