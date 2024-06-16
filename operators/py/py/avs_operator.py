@@ -42,7 +42,10 @@ class AVSOperator:
         attested_stake = sum(a.operator_weight for a in self.attestations[attestation.bridge_request_id])
         if attested_stake >= for_bridge_request.amount_out:
             print("Threshold reached for bridge request: ", attestation.bridge_request_id)
-            pass
+            destination_bridge = self.bridges["OP Sepolioa"]
+            signatures = [a.attestation for a in self.attestations[attestation.bridge_request_id]]
+            tx_hash = destination_bridge.release_bridge_request(signatures, for_bridge_request, self.signer)
+            print("Released bridge request: ", attestation.bridge_request_id, " with tx hash: ", tx_hash)
         else:
             print("Threshold not yet reached for bridge request: ", attestation.bridge_request_id)
 

@@ -74,6 +74,14 @@ class Bridge:
         )
         return self._sign_and_send(tx, Account.from_key(self.owner))
 
+    def release_bridge_request(
+            self, signatures: list[bytes], bridge_request: BridgeRequest, caller: LocalAccount
+    ) -> str:
+        tx = self.bridge_contract.functions.releaseBridgeRequest(
+            signatures, bridge_request.as_struct()
+        ).build_transaction(self._default_tx_body(caller.address))
+        return self._sign_and_send(tx, caller)
+
 
 if __name__ == "__main__":
     from py.config.config import load_config
