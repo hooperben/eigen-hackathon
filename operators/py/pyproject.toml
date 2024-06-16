@@ -7,6 +7,8 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.12"
+web3 = "^6.19.0"
+aiostream = "^0.6.1"
 
 
 [build-system]
