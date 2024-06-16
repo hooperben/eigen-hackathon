@@ -9,6 +9,8 @@ readme = "README.md"
 python = "^3.12"
 web3 = "^6.19.0"
 aiostream = "^0.6.1"
+eth-abi = "^5.1.0"
+python-dotenv = "^1.0.1"
 
 
 [build-system]
