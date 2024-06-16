@@ -4,14 +4,14 @@
 
 This repository is intended to be the Zarathustra protocol, initially created as a project for ETH Prague 2024, but now being expanded upon for the Eigenlayer hackathon.
 
+#### [`Docs`](https://docs.zarathustra.cz): The Zarathustra Docs
+#### [`Youtube Series`](https://youtube.com): Youtube Video Tutorial Series
+
 ![Alt text](image-documentation/zarathustrabanner.png?raw=true "Title")
 
 ### The Zarahustra Protocol
 
 Initially intended to be a cross chain messaging protocol, this example repository is a more specialised implementation that allows for cross chain transfers of ERC20s using an Eigenlayer AVS implementation. The Zarathustra protocol leverages Eigenlayer's infrastructure to provide secure and efficient cross-chain token transfers. At its core, the protocol utilizes a smart contract called VaultAVS, which combines the functionality of a vault and an AVS manager.
-
-#### [`VaultAVS.sol`](https://docs.zarathustra.cz): The Zarathustra Docs
-#### [`VaultAVS.sol`](https://youtube.com): Youtube Video Tutorial Series
 
 ![Alt text](image-documentation/overview.png?raw=true "Title")
 
