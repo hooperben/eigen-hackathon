@@ -10,7 +10,6 @@ abigen!(
 );
 
 #[tokio::main]
-
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let provider = Provider::<Http>::try_from("http://localhost:8545")?;
     let block_number: U64 = provider.get_block_number().await?;
