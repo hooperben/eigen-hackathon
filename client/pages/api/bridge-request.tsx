@@ -6,7 +6,6 @@ import {
   http,
   createPublicClient,
   parseEventLogs,
-  PublicClient,
   verifyTypedData,
   getContract,
   WalletClient,
@@ -14,24 +13,13 @@ import {
 import { privateKeyToAccount } from "viem/accounts";
 import { holesky, optimismSepolia } from "viem/chains";
 import { VaultAbi } from "../../constants/abis/vault";
+import { PermissionedBridgeAbi } from "../../constants/abis/permissionedBridge";
 import { supportedTokenWithChainIdIndex } from "../../constants/supported-tokens";
 
 const chainIdToChain: Record<number, Chain> = {
   17000: holesky,
   11155420: optimismSepolia,
 };
-
-// const getDigest = async (
-//   publicClient: PublicClient,
-//   chainId: number,
-//   args: any
-// ) =>
-//   await publicClient.readContract({
-//     address: supportedTokenWithChainIdIndex[chainId].network.vaultAddress,
-//     abi: VaultAbi,
-//     functionName: "getDigest",
-//     args,
-//   });
 
 const publishAttestation = async (
   backendWallet: WalletClient,
@@ -41,7 +29,7 @@ const publishAttestation = async (
 ) => {
   const contract = getContract({
     address: supportedTokenWithChainIdIndex[chainId].network.vaultAddress,
-    abi: VaultAbi,
+    abi: PermissionedBridgeAbi,
     client: { wallet: backendWallet },
   });
 
@@ -49,6 +37,7 @@ const publishAttestation = async (
     attestation,
     bridgeRequestId,
   ]);
+
   return tx;
 };
 
@@ -58,8 +47,6 @@ export default async function handler(
 ) {
   if (req.method === "POST") {
     const { hash, chainId } = req.body;
-
-    console.log(hash);
 
     const chain = chainIdToChain[parseInt(chainId)];
 
@@ -91,6 +78,7 @@ export default async function handler(
     const {
       user,
       tokenAddress,
+      bridgeRequestId,
       amountIn,
       amountOut,
       destinationVault,
@@ -98,20 +86,6 @@ export default async function handler(
       transferIndex,
       // @ts-ignore -- someone needs to figure this shit out, infuriating
     } = topics[0].args;
-
-    // const args = [
-    //   {
-    //     user,
-    //     tokenAddress,
-    //     amountIn,
-    //     amountOut,
-    //     destinationVault,
-    //     destinationAddress,
-    //     transferIndex,
-    //   },
-    // ];
-
-    // const digest = await getDigest(publicClient, chainId, args);
 
     const data: {
       user: string;
@@ -146,17 +120,17 @@ export default async function handler(
     const domain = {
       name: "Zarathustra",
       version: "3",
+      chainId: supportedTokenWithChainIdIndex[chainId].chainId,
+      verifyingContract:
+        supportedTokenWithChainIdIndex[chainId].network.vaultAddress,
     };
 
-    const signed = await backendSigner.signTypedData({
-      account,
+    const signed = await account.signTypedData({
       domain,
       types,
       primaryType: "BridgeRequestData",
       message: data,
     });
-
-    console.log(signed);
 
     const valid = await verifyTypedData({
       address: account.address,
@@ -169,6 +143,16 @@ export default async function handler(
 
     console.log("is valid siggie: ", valid);
 
-    return res.status(200).json({ message: "hey" });
+    // // publish the attestation
+    const tx = await publishAttestation(
+      backendSigner,
+      chainId,
+      signed,
+      bridgeRequestId
+    );
+
+    console.log(tx);
+
+    return res.status(200).json({ txHash: tx, message: "hey" });
   }
 }
