@@ -29,6 +29,7 @@ import OrderTracker from "../components/ui/order-tracker";
 import { Skeleton } from "../components/ui/skeleton";
 import Spinner from "../components/ui/spinner";
 import Swaperoo from "../components/ui/swaperoo";
+import { VaultAbi } from "../constants/abis/vault";
 import {
   SupportedNetwork,
   supportedNetworks,
@@ -143,6 +144,25 @@ const Home: NextPage = () => {
           parseUnits(amount!.toString(), supportedTokens[sourceToken].decimals)
         ),
       ],
+    });
+  };
+
+  const handleBridge = async () => {
+    if (!amount || !address) return;
+    await writeContractAsync({
+      address: supportedTokens[sourceToken].network
+        .vaultAddress as `0x${string}`,
+      chainId: supportedTokens[sourceToken].chainId,
+      abi: VaultAbi,
+      functionName: "bridge",
+      args: [
+        supportedTokens[sourceToken].address,
+        parseUnits(amount.toString(), supportedTokens[sourceToken].decimals),
+        parseUnits(amount.toString(), supportedTokens[sourceToken].decimals),
+        supportedTokens[destToken].network.vaultAddress,
+        address,
+      ],
+      value: parseUnits("1", 0),
     });
   };
 
@@ -321,7 +341,7 @@ const Home: NextPage = () => {
                   />
                 )}
 
-                {hash ||
+                {!!hash ||
                   (isApprovalSuccess && (
                     <Button
                       onClick={() =>
@@ -338,7 +358,7 @@ const Home: NextPage = () => {
 
                 {/* ALLOWANCE BUTTON + HANDLING */}
                 {amount &&
-                  sourceTokenAllowance &&
+                  sourceTokenAllowance === BigInt(0) &&
                   parseUnits(
                     amount!.toString(),
                     supportedTokens[sourceToken].decimals
@@ -392,12 +412,18 @@ const Home: NextPage = () => {
                     amount!.toString(),
                     supportedTokens[sourceToken].decimals
                   ) < sourceTokenAllowance && (
-                    <Button variant="outline" className="min-w-[200px]">
-                      Bridge Tokens
-                    </Button>
+                    <div>
+                      <Button
+                        variant="outline"
+                        className="min-w-[200px]"
+                        onClick={handleBridge}
+                      >
+                        {isPending ? <Spinner /> : "Bridge Tokens"}
+                      </Button>
+                    </div>
                   )}
 
-                <OrderTracker vaultToWatch={sourceToken} />
+                <OrderTracker vaultToWatch={sourceToken} address={address!} />
 
                 {!address && <ConnectWallet />}
               </CardContent>
