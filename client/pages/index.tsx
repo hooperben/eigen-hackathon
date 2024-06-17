@@ -375,7 +375,7 @@ const Home: NextPage = () => {
                   parseUnits(
                     amount!.toString(),
                     supportedTokens[sourceToken].decimals
-                  ) >= sourceTokenAllowance && (
+                  ) <= sourceTokenAllowance && (
                     <>
                       <p className="flex flex-row pl-4 align-right text-xs py-1">
                         {sourceTokenAllowance > 0
