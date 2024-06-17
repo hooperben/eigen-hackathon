@@ -1,4 +1,4 @@
-# Zarathustra (v3)
+# Zarathustra (v2)
 
 > run `make update` to update git submodule dependencies
 
@@ -11,7 +11,7 @@ This repository is intended to be the Zarathustra protocol, initially created as
 
 ### The Zarahustra Protocol
 
-Initially intended to be a cross chain messaging protocol, this example repository is a more specialised implementation that allows for cross chain transfers of ERC20s using an Eigenlayer AVS implementation. The Zarathustra protocol leverages Eigenlayer's infrastructure to provide secure and efficient cross-chain token transfers. At its core, the protocol utilizes a smart contract called Vault, which combines the functionality of a vault and an AVS manager.
+Initially intended to be a cross chain messaging protocol, this example repository is a more specialised implementation that allows for cross chain transfers of ERC20s using an Eigenlayer AVS implementation. The Zarathustra protocol leverages Eigenlayer's ecosystem to provide secure and efficient cross-chain token transfers.
 
 ![Alt text](image-documentation/overview.png?raw=true "Title")
 
@@ -53,10 +53,6 @@ To maintain the security and integrity of the system, `BridgeServiceManager` inc
 ![Alt text](image-documentation/challenge.png?raw=true "Title")
 
 The `releaseFunds` function implements the `_releaseFunds` logic, verifying signatures, summing operator weights, and transferring tokens to the destination address if the total weight is sufficient. This ensures that the release of funds is both secure and efficient. Additionally, the `payoutCrankGasCost` function compensates the user calling the `releaseFunds` function for their gas costs, ensuring that users are incentivized to participate in the protocol.
-
-The contract also includes several helper functions for managing operator weights and minimum requirements, as well as owner-only functions for adjusting fees and rewards. These functions allow for fine-tuning of the protocol's economic parameters as needed. 
-
-The contract's integration with Eigenlayer's stake registry and rewards coordinator allows it to leverage the security and economic incentives of the broader Eigenlayer ecosystem.
 
 To run tests: `make test` cause foundry submodules suck.
 
