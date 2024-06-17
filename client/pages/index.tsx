@@ -147,23 +147,32 @@ const Home: NextPage = () => {
     });
   };
 
+  const [bridgeStarted, setBridgeStarted] = useState(false);
+  const [orderComplete, setOrderComplete] = useState(false);
+
   const handleBridge = async () => {
     if (!amount || !address) return;
-    await writeContractAsync({
-      address: supportedTokens[sourceToken].network
-        .vaultAddress as `0x${string}`,
-      chainId: supportedTokens[sourceToken].chainId,
-      abi: VaultAbi,
-      functionName: "bridge",
-      args: [
-        supportedTokens[sourceToken].address,
-        parseUnits(amount.toString(), supportedTokens[sourceToken].decimals),
-        parseUnits(amount.toString(), supportedTokens[sourceToken].decimals),
-        supportedTokens[destToken].network.vaultAddress,
-        address,
-      ],
-      value: parseUnits("1", 0),
-    });
+    setBridgeStarted(true);
+
+    try {
+      await writeContractAsync({
+        address: supportedTokens[sourceToken].network
+          .vaultAddress as `0x${string}`,
+        chainId: supportedTokens[sourceToken].chainId,
+        abi: VaultAbi,
+        functionName: "bridge",
+        args: [
+          supportedTokens[sourceToken].address,
+          parseUnits(amount.toString(), supportedTokens[sourceToken].decimals),
+          parseUnits(amount.toString(), supportedTokens[sourceToken].decimals),
+          supportedTokens[destToken].network.vaultAddress,
+          address,
+        ],
+        value: parseUnits("1", 0), // TODO make fee dynamic
+      });
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   useEffect(() => {
@@ -263,7 +272,10 @@ const Home: NextPage = () => {
                 </div>
 
                 <div className="flex justify-center w-full mt-2">
-                  <Button onClick={swapSourceAndDest}>
+                  <Button
+                    onClick={swapSourceAndDest}
+                    disabled={isPending || loadingApprovalConfirmation}
+                  >
                     <Swaperoo />
                   </Button>
                 </div>
@@ -355,14 +367,13 @@ const Home: NextPage = () => {
                       View Approval Tx
                     </Button>
                   ))}
-
                 {/* ALLOWANCE BUTTON + HANDLING */}
                 {amount &&
-                  sourceTokenAllowance === BigInt(0) &&
+                  sourceTokenAllowance &&
                   parseUnits(
                     amount!.toString(),
                     supportedTokens[sourceToken].decimals
-                  ) > sourceTokenAllowance && (
+                  ) >= sourceTokenAllowance && (
                     <>
                       <p className="flex flex-row pl-4 align-right text-xs py-1">
                         {sourceTokenAllowance > 0
@@ -418,12 +429,17 @@ const Home: NextPage = () => {
                         className="min-w-[200px]"
                         onClick={handleBridge}
                       >
-                        {isPending ? <Spinner /> : "Bridge Tokens"}
+                        {bridgeStarted ? <Spinner /> : "Bridge Tokens"}
                       </Button>
                     </div>
                   )}
 
-                <OrderTracker vaultToWatch={sourceToken} address={address!} />
+                <OrderTracker
+                  vaultToWatch={sourceToken}
+                  address={address!}
+                  setOrderComplete={setOrderComplete}
+                  destChainId={supportedTokens[destToken].chainId}
+                />
 
                 {!address && <ConnectWallet />}
               </CardContent>

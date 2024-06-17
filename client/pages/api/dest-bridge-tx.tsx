@@ -9,6 +9,7 @@ import {
   verifyTypedData,
   getContract,
   WalletClient,
+  getAddress,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { holesky, optimismSepolia } from "viem/chains";
@@ -21,22 +22,26 @@ const chainIdToChain: Record<number, Chain> = {
   11155420: optimismSepolia,
 };
 
-const publishAttestation = async (
+const chainIdToTokenAddress: Record<number, string> = {
+  17000: "0x7c127124Fa31D6B321E3a0Fd81F8612Eb1eD7090",
+  11155420: "0xD30dB776393F8EaEbdF3Ef1E1E609B513eF7c031",
+};
+
+const sendReleaseFunds = async (
   backendWallet: WalletClient,
   chainId: number,
   attestation: string,
-  bridgeRequestId: BigInt
+  bridgeRequest: any
 ) => {
   const contract = getContract({
-    address: supportedTokenWithChainIdIndex[chainId].network.vaultAddress,
+    address: getAddress(
+      supportedTokenWithChainIdIndex[chainId].network.vaultAddress
+    ),
     abi: PermissionedBridgeAbi,
     client: { wallet: backendWallet },
   });
 
-  const tx = await contract.write.publishAttestation([
-    attestation,
-    bridgeRequestId,
-  ]);
+  const tx = await contract.write.releaseFunds([[attestation], bridgeRequest]);
 
   return tx;
 };
@@ -46,21 +51,29 @@ export default async function handler(
   res: NextApiResponse
 ) {
   if (req.method === "POST") {
-    const { hash, chainId } = req.body;
+    const { hash, originalHash, chainId, sourceChainId } = req.body;
 
-    console.log(hash);
+    console.log(originalHash);
     console.log(chainId);
+    console.log(sourceChainId);
+
+    console.log(getAddress(chainIdToTokenAddress[chainId]));
+    console.log(supportedTokenWithChainIdIndex[chainId].network.vaultAddress);
+
+    // return res.status(401).json({ message: "ERRRR" });
 
     const chain = chainIdToChain[parseInt(chainId)];
+    const sourceChain = chainIdToChain[parseInt(sourceChainId)];
 
-    if (!chain) return res.status(401).json({ message: "ERRRR" });
+    if (!chain || !sourceChain)
+      return res.status(401).json({ message: "ERRRR" });
 
     const account = privateKeyToAccount(
       process.env.PRIVATE_KEY! as `0x${string}`
     );
 
-    const publicClient = createPublicClient({
-      chain,
+    const sourceChainClient = createPublicClient({
+      chain: sourceChain,
       transport: http(),
     });
 
@@ -70,7 +83,9 @@ export default async function handler(
       transport: http(),
     });
 
-    const transaction = await publicClient.getTransactionReceipt({ hash });
+    const transaction = await sourceChainClient.getTransactionReceipt({
+      hash: originalHash,
+    });
 
     const topics = parseEventLogs({
       abi: VaultAbi,
@@ -78,9 +93,10 @@ export default async function handler(
       logs: transaction.logs,
     });
 
+    console.log(topics);
+
     const {
       user,
-      tokenAddress,
       bridgeRequestId,
       amountIn,
       amountOut,
@@ -100,7 +116,7 @@ export default async function handler(
       transferIndex: BigInt;
     } = {
       user,
-      tokenAddress,
+      tokenAddress: getAddress(chainIdToTokenAddress[chainId]),
       amountIn,
       amountOut,
       destinationVault,
@@ -146,13 +162,9 @@ export default async function handler(
 
     console.log("is valid siggie: ", valid);
 
-    // // publish the attestation
-    const tx = await publishAttestation(
-      backendSigner,
-      chainId,
-      signed,
-      bridgeRequestId
-    );
+    const tx = await sendReleaseFunds(backendSigner, chainId, signed, data);
+
+    console.log("post call");
 
     console.log(tx);
 
