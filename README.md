@@ -1,4 +1,4 @@
-# Zarathustra (v2)
+# Zarathustra (v3)
 
 > run `make update` to update git submodule dependencies
 
@@ -11,7 +11,7 @@ This repository is intended to be the Zarathustra protocol, initially created as
 
 ### The Zarahustra Protocol
 
-Initially intended to be a cross chain messaging protocol, this example repository is a more specialised implementation that allows for cross chain transfers of ERC20s using an Eigenlayer AVS implementation. The Zarathustra protocol leverages Eigenlayer's infrastructure to provide secure and efficient cross-chain token transfers. At its core, the protocol utilizes a smart contract called VaultAVS, which combines the functionality of a vault and an AVS manager.
+Initially intended to be a cross chain messaging protocol, this example repository is a more specialised implementation that allows for cross chain transfers of ERC20s using an Eigenlayer AVS implementation. The Zarathustra protocol leverages Eigenlayer's infrastructure to provide secure and efficient cross-chain token transfers. At its core, the protocol utilizes a smart contract called Vault, which combines the functionality of a vault and an AVS manager.
 
 ![Alt text](image-documentation/overview.png?raw=true "Title")
 
@@ -36,21 +36,23 @@ This is a foundry project that contains all smart contracts, tests, deployment p
 
 #### The Vault: The Heart of Zarathustra
 
-`VaultAVS.sol` is a Solidity smart contract that integrates vault functionality with AVS management. It inherits from `ECDSAServiceManagerBase`, allowing it to interact seamlessly with Eigenlayer's ecosystem. The contract uses several mappings to efficiently track bridge requests, operator responses, and weights.
+`Vault.sol` is a Solidity smart contract that serves as the base for our core bridging functionality. It extends multiple modules, including `ECDSAUtils`, `Events`, `ReentrancyGuard`, and `OwnableUpgradeable`, to ensure secure and efficient operations. 
 
-`nextUserTransferIndexes`: This mapping keeps track of unique transfer indices for each user, ensuring proper sequencing of transfers.
+The contract employs several mappings to manage its operations effectively. The `nextUserTransferIndexes` mapping tracks unique transfer indices for each user, ensuring proper sequencing of transfers, while the bridgeRequests mapping stores the history of bridge requests using a globally unique bridge request ID. Additionally, parameters for fees and rewards, such as `bridgeFee`, `AVSReward`, and `crankGasCost`, are stored and can also be adjusted. 
 
-`operatorResponses`: This prevents duplicate responses from operators, maintaining the integrity of the validation process.
+The core functionality of the contract is encapsulated in the bridge function, which handles the initiation of cross-chain transfers. This function ensures that the correct bridge fee is paid, transfers tokens to the contract, emits a `BridgeRequest` event, and stores the request details in the `bridgeRequests` mapping. The `bridgeERC20` function facilitates ERC20 token transfers to the contract, ensuring the seamless handling of token transactions. Furthermore, the contract defines an abstract function `_releaseFunds`, intended to be implemented by inheriting contracts to specify the fund release logic, ensuring flexibility and adaptability in different deployment scenarios.
 
-`bridgeRequestWeights`: This accumulates the total weight of operators attesting to each request, crucial for determining when a transfer can be executed.
+#### The Bridge Service Manager: Attestations and Operator Management
 
-The contract's `bridge` function serves as the entry point for users initiating cross-chain transfers. It accepts token transfers and emits a `BridgeRequest` event, storing the request details in the `bridgeRequests` mapping. This function ensures that the correct bridge fee is paid and that the token transfer to the contract is successful.
+`BridgeServiceManager.sol` builds upon `Vault.sol` by integrating with the Eigenlayer ecosystem to manage operator attestations and bridge requests. It inherits from `ECDSAServiceManagerBase` and `Vault`, enabling it to interact with Eigenlayer's AVS and stake management features. The contract uses several mappings to track its operations, including `operatorResponses`, which prevents duplicate responses from operators by tracking bridge requests that an operator has responded to, and `bridgeRequestWeights`, which accumulates the total operator weight attested to each bridge request, determining when sufficient attestations have been collected to release funds.
 
-Operators interact with the contract through the `publishAttestation` function. This function performs several crucial checks. It verifies that the operator has the minimum required weight, ensures the operator hasn't already responded to the same bridge request, and validates the attestation signature against the bridge request data. Upon passing these checks, the function updates the total weight for the bridge request and rewards the operator for their participation.
+The constructor of `BridgeServiceManager` initializes the contract with addresses for the AVS directory, stake registry, rewards coordinator, and delegation manager, along with parameters for gas cost, AVS reward, and bridge fee. This setup ensures that the contract is well-integrated with the Eigenlayer ecosystem from the outset. Operators interact with the contract primarily through the `publishAttestation` function, which allows them to submit attestations for bridge requests. This function performs several crucial checks, including verifying that the operator has the minimum required weight, ensuring the operator hasn't already responded to the same bridge request, and validating the attestation signature against the bridge request data. Upon passing these checks, the function updates the total weight for the bridge request and rewards the operator for their participation through the `rewardAttestation` function, which calculates and distributes the AVS reward.
 
-To maintain the security and integrity of the system, `VaultAVS.sol` includes a `challengeAttestation` function. This allows any party to challenge a potentially fraudulent attestation by providing evidence of the fraudulent signature and bridge request data. If fraud is detected, the contract can slash the offending operator, providing a strong disincentive for malicious behavior.
+To maintain the security and integrity of the system, `BridgeServiceManager` includes a `challengeAttestation` function, which allows any party to challenge potentially fraudulent attestations by providing evidence of a fraudulent signature and bridge request data. If fraud is detected, the contract can penalize the offending operator, thereby providing a strong disincentive for malicious behavior. 
 
 ![Alt text](image-documentation/challenge.png?raw=true "Title")
+
+The `releaseFunds` function implements the `_releaseFunds` logic, verifying signatures, summing operator weights, and transferring tokens to the destination address if the total weight is sufficient. This ensures that the release of funds is both secure and efficient. Additionally, the `payoutCrankGasCost` function compensates the user calling the `releaseFunds` function for their gas costs, ensuring that users are incentivized to participate in the protocol.
 
 The contract also includes several helper functions for managing operator weights and minimum requirements, as well as owner-only functions for adjusting fees and rewards. These functions allow for fine-tuning of the protocol's economic parameters as needed. 
 
@@ -64,7 +66,7 @@ To run tests: `make test` cause foundry submodules suck.
 
 2. Bridge Request: The `Vault.sol` contract receives the bridge request via the `bridge` function. It transfers tokens from the user to itself and emits a `BridgeRequest` event, storing the request data for future reference.
 
-3. AVS Validation: The`BridgeServiceManager.sol` contract, which inherits from `Vault.sol` and incorporates AVS management functionality, oversees the validation process. Registered operators monitor for `BridgeRequest` events and attest to valid requests using the `publishAttestation` function. Attestations are emitted as public events. 
+3. AVS Validation: The`BridgeServiceManager.sol` contract, which inherits from `Vault` and incorporates AVS management functionality, oversees the validation process. Registered operators monitor for `BridgeRequest` events and attest to valid requests using the `publishAttestation` function. Attestations are emitted as public events. 
 
 4. The `BridgeServiceManager.sol` contract allows anyone to challenge potentially fraudulent attestations via the `challengeAttestation` function. This serves as a security measure to prevent malicious behavior.
 
