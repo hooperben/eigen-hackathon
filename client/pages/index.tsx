@@ -149,10 +149,12 @@ const Home: NextPage = () => {
 
   const [bridgeStarted, setBridgeStarted] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
+  const [displayProgress, setDisplayProgress] = useState(false);
 
   const handleBridge = async () => {
     if (!amount || !address) return;
     setBridgeStarted(true);
+    setDisplayProgress(true);
 
     try {
       await writeContractAsync({
@@ -429,17 +431,24 @@ const Home: NextPage = () => {
                         className="min-w-[200px]"
                         onClick={handleBridge}
                       >
-                        {bridgeStarted ? <Spinner /> : "Bridge Tokens"}
+                        {bridgeStarted && !orderComplete ? (
+                          <Spinner />
+                        ) : (
+                          "Bridge Tokens"
+                        )}
                       </Button>
                     </div>
                   )}
 
-                <OrderTracker
-                  vaultToWatch={sourceToken}
-                  address={address!}
-                  setOrderComplete={setOrderComplete}
-                  destChainId={supportedTokens[destToken].chainId}
-                />
+                {displayProgress && (
+                  <OrderTracker
+                    vaultToWatch={sourceToken}
+                    address={address!}
+                    orderComplete={orderComplete}
+                    setOrderComplete={setOrderComplete}
+                    destChainId={supportedTokens[destToken].chainId}
+                  />
+                )}
 
                 {!address && <ConnectWallet />}
               </CardContent>

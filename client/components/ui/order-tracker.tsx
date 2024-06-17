@@ -1,24 +1,25 @@
-import { useState, Dispatch, SetStateAction, useEffect } from "react";
-import { Progress } from "./progress";
-import { useWatchContractEvent } from "wagmi";
-
-import { useTransactionReceipt } from "wagmi";
-
-import {
-  supportedTokens,
-  supportedTokenWithChainIdIndex,
-} from "../../constants/supported-tokens";
-import { VaultAbi } from "../../constants/abis/vault";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { useTransactionReceipt, useWatchContractEvent } from "wagmi";
 import { PermissionedBridgeAbi } from "../../constants/abis/permissionedBridge";
+import { VaultAbi } from "../../constants/abis/vault";
+import {
+  supportedTokenWithChainIdIndex,
+  supportedTokens,
+} from "../../constants/supported-tokens";
+import { Button } from "./button";
+import { Progress } from "./progress";
+import Spinner from "./spinner";
 
 const OrderTracker = ({
   vaultToWatch,
   address,
+  orderComplete,
   setOrderComplete,
   destChainId,
 }: {
   vaultToWatch: number;
   address: `0x${string}`;
+  orderComplete: boolean;
   setOrderComplete: Dispatch<SetStateAction<boolean>>;
   destChainId: number;
 }) => {
@@ -133,6 +134,44 @@ const OrderTracker = ({
   return (
     <div className="py-4">
       <Progress value={progressAmount} />
+
+      {!orderComplete && <Spinner />}
+
+      {progressAmount === 0 && (
+        <p className="text-xs">Submitting your bridge request.</p>
+      )}
+
+      {progressAmount === 33 && (
+        <p className="text-xs">
+          Your bridge request has been picked up by the AVS..
+        </p>
+      )}
+
+      {progressAmount === 66 && (
+        <p className="text-xs">
+          The AVS has attested to your transaction and it is being relayed to
+          the destination chain
+        </p>
+      )}
+
+      {progressAmount === 100 && (
+        <>
+          <Button
+            onClick={() =>
+              window.open(
+                `${supportedTokenWithChainIdIndex[destChainId].blockExplorer}/tx/${destinationHash}`,
+                "_blank",
+                "noopener,noreferrer"
+              )
+            }
+          >
+            View on Explorer
+          </Button>
+          <p className="text-xs">
+            Your tokens have arrived on the destination chain!
+          </p>
+        </>
+      )}
     </div>
   );
 };
