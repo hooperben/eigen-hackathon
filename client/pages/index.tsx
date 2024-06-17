@@ -355,39 +355,41 @@ const Home: NextPage = () => {
                   />
                 )}
 
-                {!!hash ||
-                  (isApprovalSuccess && (
-                    <Button
-                      onClick={() =>
-                        window.open(
-                          `${supportedTokens[sourceToken].blockExplorer}/tx/${hash}`,
-                          "_blank",
-                          "noopener,noreferrer"
-                        )
-                      }
-                    >
-                      View Approval Tx
-                    </Button>
-                  ))}
+                {isApprovalSuccess && (
+                  <Button
+                    onClick={() =>
+                      window.open(
+                        `${supportedTokens[sourceToken].blockExplorer}/tx/${hash}`,
+                        "_blank",
+                        "noopener,noreferrer"
+                      )
+                    }
+                  >
+                    View Approval Tx
+                  </Button>
+                )}
                 {/* ALLOWANCE BUTTON + HANDLING */}
+
+                {loadingApprovalConfirmation && <Spinner />}
+
                 {amount &&
-                  sourceTokenAllowance &&
                   parseUnits(
                     amount!.toString(),
                     supportedTokens[sourceToken].decimals
-                  ) <= sourceTokenAllowance && (
+                  ) > (sourceTokenAllowance || 0) && (
                     <>
-                      <p className="flex flex-row pl-4 align-right text-xs py-1">
-                        {sourceTokenAllowance > 0
-                          ? `You'll need to increase the amount the vault address can move of your ${supportedTokens[sourceToken].name}`
-                          : `You'll need to approve the vault address to move
-                     your ${supportedTokens[sourceToken].name}`}
-                      </p>
-
-                      {sourceTokenAllowance > 0 && (
+                      {sourceTokenAllowance && sourceTokenAllowance > 0 && (
                         <>
+                          <p className="flex flex-row pl-4 align-right text-xs py-1">
+                            {sourceTokenAllowance > 0
+                              ? `You'll need to increase the amount the vault address can move of your ${supportedTokens[sourceToken].name}`
+                              : `You'll need to approve the vault address to move
+                     your ${supportedTokens[sourceToken].name}`}
+                          </p>
                           <div className="flex flex-row pl-4 justify-center w-full text-xs py-1">
-                            <p className="font-bold">current approval:</p>
+                            <p className="font-bold">
+                              current approval amount:
+                            </p>
                             <p className="ml-2">
                               {parseFloat(
                                 formatUnits(
@@ -424,7 +426,7 @@ const Home: NextPage = () => {
                   parseUnits(
                     amount!.toString(),
                     supportedTokens[sourceToken].decimals
-                  ) < sourceTokenAllowance && (
+                  ) <= sourceTokenAllowance && (
                     <div>
                       <Button
                         variant="outline"
