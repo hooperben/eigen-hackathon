@@ -32,7 +32,9 @@ This is the frontend deployed to SITE. This is a NextJS application bootstrapped
 
 #### `contracts`
 
-This is a foundry project that contains all smart contracts, tests, deployment procedures and scripts required to get all application level (smart contract) parts of the Zarathustra protocol.
+This is a foundry project that contains all smart contracts, tests, deployment procedures and scripts required to get all application level (smart contract) parts of the Zarathustra protocol. Within Zarathustra, there are two core smart contracts: `Vault.sol` and `BridgeServiceManager.sol`.
+
+![Alt text](image-documentation/smartcontractdiagram.png?raw=true "Title")
 
 #### The Vault: The Heart of Zarathustra
 
