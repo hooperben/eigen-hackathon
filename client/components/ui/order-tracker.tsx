@@ -15,6 +15,24 @@ const OrderTracker = ({
   const token = supportedTokens[vaultToWatch];
   const [progressAmount, setProgressAmount] = useState(0);
 
+  const sendBridgeRequestToBackend = async (hash: string, chainId: number) => {
+    const response = await fetch("/api/bridge-request", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        hash: "",
+        chainId: "",
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Error getting history :(");
+    }
+    const history = await response.json();
+  };
+
   // listen for BridgeRequest events
   useWatchContractEvent({
     address: token.network.vaultAddress,
@@ -30,6 +48,8 @@ const OrderTracker = ({
       if (logs[0] && logs[0].args?.user === address) {
         console.log("got the users bridge request");
         setProgressAmount(progressAmount + 33);
+
+        sendBridgeRequestToBackend(logs[0].hash, token.chainId);
       }
     },
   });
@@ -57,7 +77,7 @@ const OrderTracker = ({
   //   address: token.network.vaultAddress,
   //   abi: VaultAbi,
   //   chainId: token.chainId as 17000 | 11155420, // TODO fml
-  //   eventName: "Attestation",
+  //   eventName: "AVSAttestation",
   //   onLogs(logs) {
   //     console.log("New logs!", logs);
   //     setProgressAmount(progressAmount + 33);

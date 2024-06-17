@@ -38,4 +38,10 @@ export const supportedTokens: SupportedToken[] = [
   },
 ];
 
+// this is a bit heinous but CBF
+export const supportedTokenWithChainIdIndex: Record<number, SupportedToken> = {
+  17000: supportedTokens[0],
+  11155420: supportedTokens[1],
+};
+
 export const supportedNetworks: SupportedNetwork[] = ["holesky", "op-sepolia"];
