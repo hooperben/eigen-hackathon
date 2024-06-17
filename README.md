@@ -61,12 +61,14 @@ To run tests: `make test` cause foundry submodules suck.
 
 ### How Zarathustra Works
 
-1. Users initiate transfers through the frontend, specifying the amount, currency, and destination chain. The frontend interacts with the `Vault.sol` contract to process this request.
+1. First, users interact with our frontend to initiate a bridge request.
 
-2. The `Vault.sol` contract receives the bridge request via the `bridgeERC20` function. It transfers tokens from the user to itself and emits a `BridgeRequest` event, storing the request data for future reference.
+2. The frontend calls the Vault smart contract on our home chain, transferring tokens.
+After the transfer, the Vault emits an event containing the parameters of the bridge request such as destination chain, token, and amounts.
 
-3. The`BridgeServiceManager.sol` contract, which inherits from `Vault` and incorporates AVS management functionality, oversees the validation process. Registered operators monitor for `BridgeRequest` events and attest to valid requests using the `publishAttestation` function. Attestations are emitted as public events. 
+3. Off-chain, AVS Operators attest to this event. If operators deems the transaction request is valid, the AVS submits an attestation to the bridgeServiceManager smart contract.
 
-4. The `BridgeServiceManager.sol` contract allows anyone to challenge potentially fraudulent attestations via the `challengeAttestation` function. This serves as a security measure to prevent malicious behavior.
+4. These attestations are also emitted as public events, and can be challenged by anyone. 
+Once sufficient stake has attested that the bridge request is valid, anyone can aggregate the attestations and release the funds on the destination chain.
 
-5. Once sufficient stake has attested that the bridge request is valid, anyone can aggregate the attestations and release the funds on the destination chain by calling the `releaseFunds` function in the `BridgeServiceManager.sol` contract. This function verifies signatures and attestations before transferring tokens to the destination address.
+5. The Vault on the destination chain validates the bridge parameters and attestations, ensuring enough economic value has been staked to cover the released funds, before transferring the user.
