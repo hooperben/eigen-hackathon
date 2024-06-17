@@ -4,6 +4,7 @@
 
 This repository is intended to be the Zarathustra protocol, initially created as a project for ETH Prague 2024, but now being expanded upon for the Eigenlayer hackathon.
 
+#### [`App`](https://eigen-hackathon.vercel.app/): The Zarathustra Live App
 #### [`Docs`](https://docs.zarathustra.cz): The Zarathustra Docs
 #### [`Youtube Series`](https://youtube.com/playlist?list=PLQno2E0hjjalvCuOVTP1-WldblsT1-5vR&si=6OyB_HnV_dApC2jv): Zarathustra Video Documentation Series
 
