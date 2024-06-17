@@ -64,11 +64,13 @@ To run tests: `make test` cause foundry submodules suck.
 1. First, users interact with our frontend to initiate a bridge request.
 
 2. The frontend calls the Vault smart contract on our home chain, transferring tokens.
-After the transfer, the Vault emits an event containing the parameters of the bridge request such as destination chain, token, and amounts.
 
-3. Off-chain, AVS Operators attest to this event. If operators deems the transaction request is valid, the AVS submits an attestation to the bridgeServiceManager smart contract.
+3. After the transfer, the Vault emits an event containing the parameters of the bridge request such as destination chain, token, and amounts.
 
-4. These attestations are also emitted as public events, and can be challenged by anyone. 
-Once sufficient stake has attested that the bridge request is valid, anyone can aggregate the attestations and release the funds on the destination chain.
+4. Off-chain, AVS Operators attest to this event. If operators deems the transaction request is valid, the AVS submits an attestation to the bridge service manager smart contract.
 
-5. The Vault on the destination chain validates the bridge parameters and attestations, ensuring enough economic value has been staked to cover the released funds, before transferring the user.
+5. These attestations are also emitted as public events, and can be challenged by anyone. 
+
+6. Once sufficient stake has attested that the bridge request is valid, anyone can aggregate the attestations and release the funds on the destination chain.
+
+7. The vault on the destination chain validates the bridge parameters and attestations, ensuring enough economic value has been staked to cover the released funds, before transferring the user.
