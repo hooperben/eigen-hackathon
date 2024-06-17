@@ -1,25 +1,7 @@
 import type { NextPage } from "next";
 import Head from "next/head";
 import { ChangeEvent, useEffect, useState } from "react";
-import { ConnectWallet } from "../components/connect-wallet";
-
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "../components/ui/card";
-
-import { Input } from "../components/ui/input";
-
-import { Button } from "../components/ui/button";
-
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "../components/ui/dropdown-menu";
+import { erc20Abi, formatUnits, parseUnits } from "viem";
 import {
   useAccount,
   useBalance,
@@ -27,17 +9,31 @@ import {
   useWaitForTransactionReceipt,
   useWriteContract,
 } from "wagmi";
-import Fees from "../components/ui/fees";
+import { ConnectWallet } from "../components/connect-wallet";
+import { Button } from "../components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "../components/ui/dropdown-menu";
+import Error from "../components/ui/error";
+import { Input } from "../components/ui/input";
+import OrderTracker from "../components/ui/order-tracker";
+import { Skeleton } from "../components/ui/skeleton";
+import Spinner from "../components/ui/spinner";
+import Swaperoo from "../components/ui/swaperoo";
 import {
   SupportedNetwork,
   supportedNetworks,
   supportedTokens,
 } from "../constants/supported-tokens";
-import Error from "../components/ui/error";
-import { Skeleton } from "../components/ui/skeleton";
-import Swaperoo from "../components/ui/swaperoo";
-import { erc20Abi, formatUnits, parseUnits } from "viem";
-import Spinner from "../components/ui/spinner";
 
 const Home: NextPage = () => {
   const { address } = useAccount();
@@ -400,6 +396,8 @@ const Home: NextPage = () => {
                       Bridge Tokens
                     </Button>
                   )}
+
+                <OrderTracker vaultToWatch={sourceToken} />
 
                 {!address && <ConnectWallet />}
               </CardContent>

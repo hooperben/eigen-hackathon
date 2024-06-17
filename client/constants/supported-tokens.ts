@@ -7,7 +7,7 @@ export type SupportedNetwork = "holesky" | "op-sepolia";
 
 interface NetworkDetails {
   name: SupportedNetwork;
-  vaultAddress: string;
+  vaultAddress: `0x${string}`;
 }
 
 interface SupportedToken {
